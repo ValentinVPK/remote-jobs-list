@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { JobItem, JobItemExpanded } from "./types";
 import { BASE_API_URL } from "./constants";
 import { useQuery } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 
 type JobItemApiResponse = {
   jobItem: JobItemExpanded;
@@ -65,7 +66,7 @@ const fetchJobItems = async (
 };
 
 export function useJobItems(searchText: string) {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["job-items", searchText],
     queryFn: () => fetchJobItems(searchText),
     staleTime: 1000 * 60 * 60, // 1 hour,
@@ -74,7 +75,13 @@ export function useJobItems(searchText: string) {
     enabled: Boolean(searchText),
   });
 
-  return { jobItems: data?.jobItems, isLoading };
+  useEffect(() => {
+    if (error) {
+      toast.error(error.message);
+    }
+  }, [error]);
+
+  return { jobItems: data?.jobItems, isLoading } as const;
 }
 
 // export function useJobItem(id: number | null) {
@@ -101,7 +108,7 @@ export function useJobItems(searchText: string) {
 // }
 
 export function useJobItem(id: number | null) {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["job-item", id],
     queryFn: () => (id ? fetchJobItem(id) : null),
     staleTime: 1000 * 60 * 60, // 1 hour,
@@ -110,7 +117,13 @@ export function useJobItem(id: number | null) {
     enabled: Boolean(id),
   });
 
-  return { jobItem: data?.jobItem, isLoading };
+  useEffect(() => {
+    if (error) {
+      toast.error(error.message);
+    }
+  }, [error]);
+
+  return { jobItem: data?.jobItem, isLoading } as const;
 }
 
 export function useDebounce<T>(value: T, delay = 1000) {
